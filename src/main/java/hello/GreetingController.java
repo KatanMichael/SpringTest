@@ -1,8 +1,13 @@
 package hello;
 
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.DocumentReference;
+import com.google.cloud.firestore.Firestore;
+import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +32,19 @@ public class GreetingController {
     {
         Random random = new Random();
         Person p = new Person(random.nextInt(1000),random.nextInt(120),name);
+
+        Firestore db = FirestoreClient.getFirestore();
+
+        final ApiFuture<DocumentReference> peoples = db.collection("Peoples").add(p);
+
+        try {
+            System.out.println(peoples.get());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
         return p;
     }
 
@@ -34,6 +52,9 @@ public class GreetingController {
     public String home(@RequestParam(name = "name", defaultValue = " ") String name ,Model model)
     {
         model.addAttribute("name",name);
+
+
+
         return "Welcome Home!";
     }
 
