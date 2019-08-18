@@ -30,11 +30,11 @@ public class GreetingController {
         return p;
     }
 
-    @GetMapping("/")
+    @GetMapping("/home")
     public String home(@RequestParam(name = "name", defaultValue = " ") String name ,Model model)
     {
         model.addAttribute("name",name);
-        return "Greeting!";
+        return "Welcome Home!";
     }
 
 
