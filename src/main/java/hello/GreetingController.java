@@ -1,12 +1,16 @@
 package hello;
 
+import java.io.IOException;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.google.api.core.ApiFuture;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.Firestore;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
 import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,11 +31,24 @@ public class GreetingController {
                 String.format(template, name));
     }
 
+
     @RequestMapping("/randomPerson")
     public Person randomPerson(@RequestParam(value="name", defaultValue = " ") String name)
     {
         Random random = new Random();
         Person p = new Person(random.nextInt(1000),random.nextInt(120),name);
+
+        GoogleCredentials credentials = null;
+        try {
+            credentials = GoogleCredentials.getApplicationDefault();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        FirebaseOptions options = new FirebaseOptions.Builder()
+                .setCredentials(credentials)
+                .setProjectId("triviaapi-d1d92")
+                .build();
+        FirebaseApp.initializeApp(options);
 
         Firestore db = FirestoreClient.getFirestore();
 
