@@ -1,14 +1,18 @@
 package hello;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.google.api.core.ApiFuture;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.DocumentReference;
+import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.QuerySnapshot;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.cloud.FirestoreClient;
@@ -19,10 +23,43 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class GreetingController {
+public class GreetingController
+{
 
     private static final String template = "Hello, %s!";
     private final AtomicLong counter = new AtomicLong();
+
+    public GreetingController()
+    {
+        FileInputStream serviceAccount =
+                null;
+        try {
+            serviceAccount = new FileInputStream("C:\\Users\\micha\\IdeaProjects\\SpringTest\\src\\main\\resources\\triviaapi.json");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        FirebaseOptions options = null;
+        try {
+            options = new FirebaseOptions.Builder()
+                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .setDatabaseUrl("https://triviaapi-d1d92.firebaseio.com")
+                    .build();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        FirebaseApp firebaseApp = null;
+        List<FirebaseApp> firebaseApps = FirebaseApp.getApps();
+        if(firebaseApps!=null && !firebaseApps.isEmpty()){
+            for(FirebaseApp app : firebaseApps){
+                if(app.getName().equals(FirebaseApp.DEFAULT_APP_NAME))
+                    firebaseApp = app;
+            }
+        }
+        else
+            firebaseApp = FirebaseApp.initializeApp(options);
+    }
 
     @RequestMapping("/greeting")
     public Greeting greeting(@RequestParam(value="name", defaultValue="World") String name)
@@ -38,30 +75,6 @@ public class GreetingController {
         Random random = new Random();
         Person p = new Person(random.nextInt(1000),random.nextInt(120),name);
 
-        GoogleCredentials credentials = null;
-        try {
-            credentials = GoogleCredentials.getApplicationDefault();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        FirebaseOptions options = new FirebaseOptions.Builder()
-                .setCredentials(credentials)
-                .setProjectId("triviaapi-d1d92")
-                .build();
-        FirebaseApp.initializeApp(options);
-
-        Firestore db = FirestoreClient.getFirestore();
-
-        final ApiFuture<DocumentReference> peoples = db.collection("Peoples").add(p);
-
-        try {
-            System.out.println(peoples.get());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-
         return p;
     }
 
@@ -69,10 +82,64 @@ public class GreetingController {
     public String home(@RequestParam(name = "name", defaultValue = " ") String name ,Model model)
     {
         model.addAttribute("name",name);
-
-
-
         return "Welcome Home!";
+    }
+
+    @RequestMapping("/testForm")
+    public Person testForm(@RequestParam(name = "name", defaultValue = " ") String name,
+                           @RequestParam(name = "age", defaultValue = "0") String age)
+    {
+        int inAge;
+
+        try
+        {
+            inAge = Integer.parseInt(age);
+        }catch (NumberFormatException e)
+        {
+            inAge = 0;
+        }
+
+        Person p = new Person(inAge,24,name);
+
+        Firestore db = FirestoreClient.getFirestore();
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("name", name);
+        data.put("age", age);
+
+        final ApiFuture<DocumentReference> users = db.collection("Users").add(data);
+
+        return p;
+    }
+
+    @RequestMapping("/personByAge")
+    public List<Person> getPersonsByAge(@RequestParam(name = "age", defaultValue = "0") String age)
+    {
+        List<Person> ppl = new ArrayList<>();
+        Firestore db = FirestoreClient.getFirestore();
+
+        final ApiFuture<QuerySnapshot> query = db.collection("Users").whereEqualTo("age",age)
+                .get();
+        QuerySnapshot queryDocumentSnapshots = null;
+        try {
+            queryDocumentSnapshots = query.get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        if(queryDocumentSnapshots != null)
+        {
+            for(DocumentSnapshot document: queryDocumentSnapshots.getDocuments())
+            {
+                String name = (String)document.get("name");
+                int inAge = Integer.parseInt((String)document.get("age"));
+                ppl.add(new Person(123,inAge,name));
+            }
+        }
+
+        return ppl;
     }
 
 
