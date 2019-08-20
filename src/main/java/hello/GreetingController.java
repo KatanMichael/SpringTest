@@ -1,5 +1,6 @@
 package hello;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -120,7 +121,8 @@ public class GreetingController
         FileInputStream serviceAccount =
                 null;
         try {
-            serviceAccount = new FileInputStream("../resources/triviaapi.json");
+            File file = new File("/resources/triviaapi.json");
+            serviceAccount = new FileInputStream(file);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
