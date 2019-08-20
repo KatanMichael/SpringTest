@@ -1,9 +1,6 @@
 package hello;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -118,19 +115,19 @@ public class GreetingController
 
     private void initFirebase()
     {
-        FileInputStream serviceAccount =
-                null;
-        try {
-            File file = new File("/resources/triviaapi.json");
-            serviceAccount = new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+//        FileInputStream serviceAccount = null;
+//        try {
+//            //File file = new File("/hello/triviaapi.json");
+//            serviceAccount = new FileInputStream(file);
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
 
         FirebaseOptions options = null;
         try {
+            InputStream stream = this.getClass().getResourceAsStream("/triviaapi.json");
             options = new FirebaseOptions.Builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .setCredentials(GoogleCredentials.fromStream(stream))
                     .setDatabaseUrl("https://triviaapi-d1d92.firebaseio.com")
                     .build();
         } catch (IOException e) {
