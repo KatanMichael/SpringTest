@@ -28,7 +28,7 @@ public class GreetingController
 
     private static final String template = "Hello, %s!";
     private final AtomicLong counter = new AtomicLong();
-
+    FirebaseApp firebaseApp;
 
 
     @RequestMapping("/greeting")
@@ -59,6 +59,9 @@ public class GreetingController
     public Person testForm(@RequestParam(name = "name", defaultValue = " ") String name,
                            @RequestParam(name = "age", defaultValue = "0") String age)
     {
+
+        initFirebase();
+
         int inAge;
 
         try
@@ -110,6 +113,38 @@ public class GreetingController
         }
 
         return ppl;
+    }
+
+    private void initFirebase()
+    {
+        FileInputStream serviceAccount =
+                null;
+        try {
+            serviceAccount = new FileInputStream("C:\\Users\\micha\\IdeaProjects\\SpringTest\\src\\main\\resources\\triviaapi.json");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        FirebaseOptions options = null;
+        try {
+            options = new FirebaseOptions.Builder()
+                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .setDatabaseUrl("https://triviaapi-d1d92.firebaseio.com")
+                    .build();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        firebaseApp = null;
+        List<FirebaseApp> firebaseApps = FirebaseApp.getApps();
+        if(firebaseApps!=null && !firebaseApps.isEmpty()){
+            for(FirebaseApp app : firebaseApps){
+                if(app.getName().equals(FirebaseApp.DEFAULT_APP_NAME))
+                    firebaseApp = app;
+            }
+        }
+        else
+            firebaseApp = FirebaseApp.initializeApp(options);
     }
 
 }
