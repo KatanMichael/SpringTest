@@ -120,7 +120,7 @@ public class GreetingController
         FileInputStream serviceAccount =
                 null;
         try {
-            serviceAccount = new FileInputStream("src\\main\\resources\\triviaapi.json");
+            serviceAccount = new FileInputStream("../resources/triviaapi.json");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
