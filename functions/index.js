@@ -1,3 +1,4 @@
+/* eslint-disable promise/no-nesting */
 const functions = require('firebase-functions');
 
 const admin = require('firebase-admin')
@@ -38,26 +39,26 @@ exports.helloWorld = functions.https.onRequest((request, response) =>
 
 exports.updataMichael = functions.firestore.document('Users/{UserId}').onCreate((snapshot, content) =>
     {
-        const newValue = snapshot.data();
+        // const newValue = snapshot.data();
 
-        const name = newValue.name;
+        // const name = newValue.name;
 
-        if(name === "Michael")
-        {
-            var newData =
-            {
-                "age" : 29,
-                "name": "Michael"
-            };
+        // if(name === "Michael")
+        // {
+        //     var newData =
+        //     {
+        //         "age" : 29,
+        //         "name": "Michael"
+        //     };
 
-            snapshot.ref.update(newData).then(ref =>
-                {
-                    return ref;
-                }).catch(error => 
-                    {
-                        console.log(error);
-                    });
-        }
+        //     snapshot.ref.update(newData).then(ref =>
+        //         {
+        //             return ref;
+        //         }).catch(error => 
+        //             {
+        //                 console.log(error);
+        //             });
+        // }
 
 
 
@@ -67,45 +68,47 @@ exports.updataMichael = functions.firestore.document('Users/{UserId}').onCreate(
     exports.updateExistsUser = functions.firestore.document("Users/{userId}")
     .onCreate((snapshot, context) =>
     {
-        const data = snapshot.data();
-        const userAddedName = data.name;
-
+        const userAddedData = snapshot.data();
+        const userAddedName = userAddedData.name;
+        const userAddedID = userAddedData.id;
         var userRef = db.collection("Users");
         var query = userRef.where("name" , "=", userAddedName);
 
-        query.get().then((querySnapshot) => {
-            
-            if(!querySnapshot.empty)
+        query.get().then((querySnapshot) => 
+        {
+            if(querySnapshot.docs.length > 1)
             {
-                var user = querySnapshot.docs[0];
-
-                var age = parseInt(snapshot.data().age) ;
-                age += parseInt(user.data().age);
-
-                const updateData = 
+                var i = 0;
+                while(querySnapshot.docs[i].id === userAddedID)
                 {
-                    "name" : userAddedName,
-                    "age" : age
-                    
-                };
-
-                // eslint-disable-next-line promise/no-nesting
-                user.ref.update(updateData).then(ref =>
-                {
-                    console.log(ref);
-                    return ref;
-                }).catch(error)
-                {
-                    console.log(error);
+                    i++;
                 }
 
+                var oldUserData = querySnapshot.docs[i];
+                var oldId = oldUserData.id;
+                var newAge = parseInt(snapshot.age) + parseInt(oldUserData.age);
+
+                var newData = 
+                {
+                    "name" : userAddedName,
+                    "age" : newAge,
+                    "id": oldId
+                };
+
+                oldUserData.ref.update(newData).then(updateRef =>
+                    {
+                        snapshot.ref.delete();
+
+                        return updateRef;
+                    }).catch(updateError =>
+                        {
+                            console.log(updateError);
+                        })
+
             }
-
-            return 0;
-          }).catch(outError)
-          {
-              console.log(outError);
-          }
-
-          snapshot.ref.delete();
+            return querySnapshot;
+        }).catch(error =>
+            {
+                console.log(error);
+            })
     });

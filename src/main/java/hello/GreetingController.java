@@ -54,8 +54,8 @@ public class GreetingController
     }
 
     @RequestMapping("/testForm")
-    public Person testForm(@RequestParam(name = "name", defaultValue = " ") String name,
-                           @RequestParam(name = "age", defaultValue = "0") String age)
+    public Map<String, Object> testForm(@RequestParam(name = "name", defaultValue = " ") String name,
+                                        @RequestParam(name = "age", defaultValue = "0") String age)
     {
 
         initFirebase();
@@ -70,17 +70,21 @@ public class GreetingController
             inAge = 0;
         }
 
-        Person p = new Person(inAge,24,name);
+
 
         Firestore db = FirestoreClient.getFirestore();
 
         Map<String, Object> data = new HashMap<>();
+        Random random = new Random();
+        data.put("id",random.nextInt(9999999));
         data.put("name", name);
         data.put("age", age);
 
         final ApiFuture<DocumentReference> users = db.collection("Users").add(data);
 
-        return p;
+        System.out.println(users.isDone());
+
+        return data;
     }
 
     @RequestMapping("/personByAge")
@@ -106,7 +110,8 @@ public class GreetingController
             {
                 String name = (String)document.get("name");
                 int inAge = Integer.parseInt((String)document.get("age"));
-                ppl.add(new Person(123,inAge,name));
+                int id = Integer.parseInt((String)document.get("id"));
+                ppl.add(new Person(id,inAge,name));
             }
         }
 
@@ -115,13 +120,7 @@ public class GreetingController
 
     private void initFirebase()
     {
-//        FileInputStream serviceAccount = null;
-//        try {
-//            //File file = new File("/hello/triviaapi.json");
-//            serviceAccount = new FileInputStream(file);
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        }
+
 
         FirebaseOptions options = null;
         try {
