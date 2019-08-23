@@ -78,32 +78,36 @@ exports.updataMichael = functions.firestore.document('Users/{UserId}').onCreate(
         {
             if(querySnapshot.docs.length > 1)
             {
-                var i = 0;
-                while(querySnapshot.docs[i].id === userAddedID)
+                var newUserDoc;
+
+                if(querySnapshot.docs[0].ref.id ===snapshot.ref.id)
                 {
-                    i++;
+                    newUserDoc = querySnapshot.docs[1];
+                }else
+                {
+                    newUserDoc = querySnapshot.docs[0];
                 }
 
-                var oldUserData = querySnapshot.docs[i];
-                var oldId = oldUserData.id;
-                var newAge = parseInt(snapshot.age) + parseInt(oldUserData.age);
+                const newUserData = newUserDoc.data();
 
-                var newData = 
+                const newAge = parseInt(newUserData.age) + parseInt(userAddedData.age);
+
+                let newData =
                 {
                     "name" : userAddedName,
                     "age" : newAge,
-                    "id": oldId
-                };
-
-                oldUserData.ref.update(newData).then(updateRef =>
+                    "id" : newUserData.id
+                }
+                
+                snapshot.ref.update(newData).then(ref =>
                     {
-                        snapshot.ref.delete();
-
-                        return updateRef;
+                        newUserDoc.ref.delete();
+                        return ref;
                     }).catch(updateError =>
                         {
                             console.log(updateError);
                         })
+
 
             }
             return querySnapshot;

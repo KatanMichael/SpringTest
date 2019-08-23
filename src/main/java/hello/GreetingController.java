@@ -57,11 +57,9 @@ public class GreetingController
     public Map<String, Object> testForm(@RequestParam(name = "name", defaultValue = " ") String name,
                                         @RequestParam(name = "age", defaultValue = "0") String age)
     {
-
         initFirebase();
 
         int inAge;
-
         try
         {
             inAge = Integer.parseInt(age);
@@ -69,8 +67,6 @@ public class GreetingController
         {
             inAge = 0;
         }
-
-
 
         Firestore db = FirestoreClient.getFirestore();
 
