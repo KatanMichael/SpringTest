@@ -17,6 +17,6 @@
   },
   "homepage": "https://github.com/KatanMichael/SpringTest#readme",
   "dependencies": {
-    "firebase": "^6.4.0"
+    "firebase": "^6.6.2"
   }
 }
